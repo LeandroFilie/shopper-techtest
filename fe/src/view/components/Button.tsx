@@ -1,9 +1,10 @@
-import { ReactNode } from 'react';
+import { ComponentProps, ReactNode } from 'react';
 import { cn } from '../../app/utils/cn';
 
-interface ButtonProps {
+interface ButtonProps extends ComponentProps<'button'> {
   children: ReactNode;
   className?: string;
+
 }
 
 export function Button({ children, className, ...props }: ButtonProps) {

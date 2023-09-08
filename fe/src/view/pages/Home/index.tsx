@@ -1,10 +1,13 @@
-import { UploadIcon } from '@radix-ui/react-icons';
 import { Section } from '../../components/Section';
-import { Separator } from '../../components/Separator';
 import { HomeLayout } from '../../layouts/HomeLayout';
+import { useHomeController } from './useHomeController';
+import { UnselectedFile } from './components/UnselectedFile';
+import { SelectedFile } from './components/SelectedFile';
 import { Button } from '../../components/Button';
 
 export function Home() {
+  const { file, handleValidateFile } = useHomeController();
+
   return (
     <HomeLayout>
       <main className='flex flex-col gap-4 items-center mt-12 w-full'>
@@ -14,21 +17,15 @@ export function Home() {
         </Section>
 
         <Section className='flex flex-col gap-4 items-stretch'>
-          <div className='flex flex-col gap-4 items-center justify-center border border-gray-200 rounded-2xl p-4'>
-            <p className='font-medium'>Arraste e solte o arquivo aqui</p>
-            <div className='flex gap-5 items-center'>
-              <Separator />
-              <span className='text-gray-400 text-sm'>ou</span>
-              <Separator />
-            </div>
-            <Button>
-              <UploadIcon className='w-3 h-3' />
-              <p className='text-sm'>Adicionar Arquivo</p>
-            </Button>
-            <span className='text-gray-400 text-sm'>.csv</span>
-          </div>
+          {!file && (
+            <UnselectedFile />
+          )}
 
-          <Button>Validar</Button>
+          {file && (
+            <SelectedFile />
+          )}
+
+          <Button onClick={handleValidateFile}>Validar</Button>
         </Section>
       </main>
     </HomeLayout>
