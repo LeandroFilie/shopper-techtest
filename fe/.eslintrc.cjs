@@ -526,7 +526,7 @@ module.exports = {
         'arrowFunctions',
         'functions',
         'methods'
-      ]
+      ],
     }],
     'no-empty-pattern': 'error',
     'no-empty-static-block': 'off',
@@ -679,7 +679,7 @@ module.exports = {
     'no-dupe-else-if': 'error',
     'no-dupe-keys': 'error',
     'no-duplicate-case': 'error',
-    'no-empty': 'error',
+    'no-empty': ['error', {'allowEmptyCatch': true}],
     'no-empty-character-class': 'error',
     'no-ex-assign': 'error',
     'no-extra-boolean-cast': 'error',
