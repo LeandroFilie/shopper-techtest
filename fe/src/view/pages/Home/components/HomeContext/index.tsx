@@ -5,6 +5,7 @@ import { ValidateDataResponse } from '../../../../../app/services/productsServic
 
 interface HomeContextvalue {
   file: File | null;
+  setFile: (value: File | null) => void;
   handleChangeFile: (event: ChangeEvent<HTMLInputElement>) => void;
   isLoading: boolean;
   setIsLoading: (value: boolean) => void;
@@ -28,7 +29,7 @@ export function HomeProvider({ children }: {children: ReactNode}) {
 
   return (
     <HomeContext.Provider value={{
-      file, handleChangeFile, isLoading, setIsLoading, validateData, setValidateData,
+      file, setFile, handleChangeFile, isLoading, setIsLoading, validateData, setValidateData,
     }}
     >
       {children}
