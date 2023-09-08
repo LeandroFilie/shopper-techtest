@@ -18,9 +18,9 @@ export class ProductsController{
 
   updatePrices = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { data } = req.body;
-      await this.productsBusiness.updatePrices(data);
-      res.status(204);
+      const { products } = req.body;
+      await this.productsBusiness.updatePrices(products);
+      res.status(204).send();
     } catch (error: any) {
       res.status(error.statusCode || 400).send({message: error.message});
     }
