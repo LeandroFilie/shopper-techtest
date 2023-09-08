@@ -29,26 +29,7 @@ export class ProductsBusiness {
 
       valuesValidate = await this.validateIfProductsExists(valuesValidate);
       valuesValidate = await this.validatePrice(valuesValidate);
-
-      const packs = await this.filterPacks(valuesValidate);
-      packs.forEach((pack) => {
-        const packIndex = valuesValidate.findIndex((value) => value.product_code === pack.pack_id);
-
-        pack.items.forEach((item) => {
-          if(!valuesValidate.find((value) => value.product_code === item.product_id)){
-            valuesValidate[packIndex].message?.push(`componente com código ${item.product_id} do pack não está no arquivo`);
-          } else {
-            const itemIndex = valuesValidate.findIndex((value) => value.product_code === item.product_id);
-            if(valuesValidate[packIndex].message?.includes('preço do pack diferente da soma dos preços dos componentes')){
-              return;
-            }
-
-            if(valuesValidate[packIndex].new_price !== Number((valuesValidate[itemIndex].new_price * item.qty).toFixed(2))){
-              valuesValidate[packIndex].message?.push('preço do pack diferente da soma dos preços dos componentes');
-            }
-          }
-        });
-      });
+      valuesValidate = await this.verifyPacks(valuesValidate);
 
       return valuesValidate;
     } catch (error: any) {
@@ -119,5 +100,30 @@ export class ProductsBusiness {
     ) as PacksWithItems[];
 
     return groupedByPackId;
+  };
+
+  private verifyPacks = async (rows: CSVFile[]) => {
+    const packs = await this.filterPacks(rows);
+
+    packs.forEach((pack) => {
+      const packIndex = rows.findIndex((value) => value.product_code === pack.pack_id);
+
+      pack.items.forEach((item) => {
+        if(!rows.find((value) => value.product_code === item.product_id)){
+          rows[packIndex].message?.push(`componente com código ${item.product_id} do pack não está no arquivo`);
+        } else {
+          const itemIndex = rows.findIndex((value) => value.product_code === item.product_id);
+          if(rows[packIndex].message?.includes('preço do pack diferente da soma dos preços dos componentes')){
+            return;
+          }
+
+          if(rows[packIndex].new_price !== Number((rows[itemIndex].new_price * item.qty).toFixed(2))){
+            rows[packIndex].message?.push('preço do pack diferente da soma dos preços dos componentes');
+          }
+        }
+      });
+    });
+
+    return rows;
   };
 }
