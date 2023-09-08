@@ -6,16 +6,16 @@ interface ButtonProps {
   className?: string;
 }
 
-export function Section({ children, className, ...props }: ButtonProps) {
+export function Button({ children, className, ...props }: ButtonProps) {
   return (
-    <section
+    <button
       className={cn(
-        'bg-white w-full max-w-5xl py-6 px-8 rounded-2xl',
+        'bg-primary rounded-full text-white py-2 px-4 flex items-center gap-2 justify-center min-w-[128px] max-w-fit',
         className,
       )}
       {...props}
     >
       {children}
-    </section>
+    </button>
   );
 }
