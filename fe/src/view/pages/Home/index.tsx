@@ -16,7 +16,7 @@ export function Home() {
           <span className='text-sm text-gray-500'>Aqui você poderá fazer o upload de uma arquivo para atualizar os preços</span>
         </Section>
 
-        <Section className='flex flex-col gap-4 items-stretch'>
+        <Section className='flex flex-col gap-4 items-end'>
           {!file && (
             <UnselectedFile />
           )}

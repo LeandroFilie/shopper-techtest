@@ -12,7 +12,7 @@ export function FileValidated() {
 
   return (
     <>
-      <div className='relative overflow-x-auto'>
+      <div className='relative overflow-x-auto w-full'>
         <table className='w-full text-sm text-left text-gray-600'>
           <thead className='text-xs text-gray-700 uppercase bg-gray-50'>
             <tr>
@@ -30,7 +30,7 @@ export function FileValidated() {
           </tbody>
         </table>
       </div>
-      <div className='flex items-center justify-between w-full'>
+      <div className='flex items-center justify-end gap-4 w-full'>
         {hasRules && (
           <Button type='button' onClick={handleResetFile}>
             <p className='text-sm'>Limpar</p>

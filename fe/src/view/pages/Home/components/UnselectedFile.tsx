@@ -12,7 +12,7 @@ export function UnselectedFile() {
 
   return (
     <>
-      <label htmlFor="file">
+      <label htmlFor="file" className='w-full'>
         <input
           type="file"
           accept='.csv'
