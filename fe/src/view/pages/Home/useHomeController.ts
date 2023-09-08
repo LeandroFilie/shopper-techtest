@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { productsService } from '../../../app/services/productsService';
 import { useHomeContext } from './components/HomeContext/useHomeContext';
 
@@ -28,6 +29,7 @@ export function useHomeController() {
       if (validateData) {
         setIsLoading(true);
         await productsService.updatePrices(validateData);
+        toast.success('Preços atualizados com sucesso');
         handleResetFile();
       }
     } catch {} finally {
