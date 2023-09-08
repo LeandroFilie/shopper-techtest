@@ -2,7 +2,6 @@ import { ProductsData } from '../data/ProductsData';
 import fs from 'fs';
 import { CSVFile } from '../types/csvFile';
 import { PacksData } from '../data/PacksData';
-import { Packs } from '../model/Packs';
 import { PacksWithItems } from '../types/packsWithItems';
 
 export class ProductsBusiness {
