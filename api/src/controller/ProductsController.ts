@@ -3,7 +3,7 @@ import { ProductsBusiness } from '../business/ProductsBusiness';
 
 export class ProductsController{
   constructor(
-        private productsBusiness: ProductsBusiness
+        private productsBusiness: ProductsBusiness,
   ){}
 
   validate = async (req: Request, res: Response): Promise<void> => {

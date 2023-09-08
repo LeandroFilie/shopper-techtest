@@ -1,9 +1,12 @@
 import { ProductsData } from '../data/ProductsData';
 import fs from 'fs';
 import { CSVFile } from '../types/csvFile';
+import { PacksData } from '../data/PacksData';
+import { Packs } from '../model/Packs';
+import { PacksWithItems } from '../types/packsWithItems';
 
 export class ProductsBusiness {
-  constructor(private ProductsData: ProductsData) {}
+  constructor(private productsData: ProductsData, private packsData: PacksData) {}
 
   validateFile = async (file: Express.Multer.File): Promise<CSVFile[]> => {
     try {
@@ -11,7 +14,7 @@ export class ProductsBusiness {
       const valuesArray = linesOfFile.splice(1).map((line) => line.split(','));
 
       const values = valuesArray.map<CSVFile>((value) => (
-        {product_code: Number(value[0].trim()), new_price: Number(value[1].trim()), message: []}
+        {product_code: Number(value[0]?.trim()), new_price: Number(value[1]?.trim()), message: []}
       ));
 
       let valuesValidate = values.map((value) => {
@@ -27,19 +30,35 @@ export class ProductsBusiness {
       valuesValidate = await this.validateIfProductsExists(valuesValidate);
       valuesValidate = await this.validatePrice(valuesValidate);
 
+      const packs = await this.filterPacks(valuesValidate);
+      packs.forEach((pack) => {
+        const packIndex = valuesValidate.findIndex((value) => value.product_code === pack.pack_id);
 
+        pack.items.forEach((item) => {
+          if(!valuesValidate.find((value) => value.product_code === item.product_id)){
+            valuesValidate[packIndex].message?.push(`componente com código ${item.product_id} do pack não está no arquivo`);
+          } else {
+            const itemIndex = valuesValidate.findIndex((value) => value.product_code === item.product_id);
+            if(valuesValidate[packIndex].message?.includes('preço do pack diferente da soma dos preços dos componentes')){
+              return;
+            }
+
+            if(valuesValidate[packIndex].new_price !== Number((valuesValidate[itemIndex].new_price * item.qty).toFixed(2))){
+              valuesValidate[packIndex].message?.push('preço do pack diferente da soma dos preços dos componentes');
+            }
+          }
+        });
+      });
 
       return valuesValidate;
     } catch (error: any) {
-      console.log(error);
-
       throw new Error(error.sqlMessage || error.message);
     }
   };
 
   private getPrices = async (rows: CSVFile[]) => {
     const listOfPrices = rows.map((row) => {
-      return this.ProductsData.getProductPrice(row.product_code);
+      return this.productsData.getProductPrice(row.product_code);
     });
     const prices = await Promise.all(listOfPrices);
     return prices;
@@ -64,7 +83,7 @@ export class ProductsBusiness {
   };
 
   private validateIfProductsExists = async (rows: CSVFile[]) => {
-    const listOfProducts = await this.ProductsData.getAllProducts();
+    const listOfProducts = await this.productsData.getAllProducts();
     const arrayOfProducts = listOfProducts.map((product) => product.code);
 
 
@@ -77,5 +96,28 @@ export class ProductsBusiness {
     });
 
     return rowsValidate;
+  };
+
+  private filterPacks = async (rows: CSVFile[]): Promise<PacksWithItems[] > => {
+    const listOfPacks = await this.packsData.getAllPacks();
+    const arrayOfProducts = rows.map((row) => row.product_code);
+
+    const groupedByPackId = Object.values(
+      listOfPacks.reduce((acc, currentItem) => {
+        const { pack_id, ...rest } = currentItem;
+
+        if(arrayOfProducts.includes(pack_id)){
+          if (!acc[pack_id]) {
+            acc[pack_id] = { pack_id, items: [] };
+          }
+
+          acc[pack_id].items.push(rest);
+        }
+
+        return acc;
+      }, {} as Record<number, PacksWithItems>)
+    ) as PacksWithItems[];
+
+    return groupedByPackId;
   };
 }
