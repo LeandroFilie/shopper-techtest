@@ -35,6 +35,20 @@ export function useHomeController() {
     }
   }
 
+  function buildRuleMessage(rule: string) {
+    const messages: Record<string, string> = {
+      missingInput: 'Produto ou preço não informados',
+      priceIsNaN: 'Preço inválido',
+      priceSmallerThanCost: 'Preço menor que o custo',
+      priceChangeGreaterThan10Percent: 'Preço com alteração maior a 10% do preço atual',
+      notExistsProduct: 'Este produto não existe',
+      packComponentNotPresent: 'Componente do pack não está presente no arquivo',
+      packPriceNotEqualToSumOfComponents: 'Preço do pack diferente da soma dos preços dos componentes',
+    };
+
+    return messages[rule];
+  }
+
   return {
     file,
     handleResetFile,
@@ -43,5 +57,6 @@ export function useHomeController() {
     handleValidateFile,
     validateData,
     handleUpdatePrices,
+    buildRuleMessage,
   };
 }
