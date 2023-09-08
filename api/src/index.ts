@@ -10,7 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/products', productsRouter);
+app.use('/', productsRouter);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {
