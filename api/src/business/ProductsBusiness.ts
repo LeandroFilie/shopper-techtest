@@ -3,6 +3,7 @@ import fs from 'fs';
 import { CSVFile } from '../types/csvFile';
 import { PacksData } from '../data/PacksData';
 import { PacksWithItems } from '../types/packsWithItems';
+import { response } from 'express';
 
 export class ProductsBusiness {
   constructor(private productsData: ProductsData, private packsData: PacksData) {}
@@ -11,6 +12,10 @@ export class ProductsBusiness {
     try {
       const linesOfFile = fs.readFileSync(file.path).toString().split('\r\n');
       const valuesArray = linesOfFile.splice(1).map((line) => line.split(','));
+
+      if(valuesArray.length === 0){
+        throw new Error('arquivo vazio');
+      }
 
       const values = valuesArray.map<CSVFile>((value) => (
         {product_code: Number(value[0]?.trim()), new_price: Number(value[1]?.trim()), message: []}
@@ -32,6 +37,28 @@ export class ProductsBusiness {
 
       return valuesValidate;
     } catch (error: any) {
+      throw new Error(error.sqlMessage || error.message);
+    }
+  };
+
+  updatePrices = async (data: CSVFile[]): Promise<void> => {
+    try {
+      if(data.length === 0){
+        throw new Error('arquivo vazio');
+      }
+
+      const promises = data.map((row) => {
+        if(row.message && row.message.length > 0){
+          throw new Error('arquivo inválido');
+        }
+
+        return this.productsData.updateProductPrice(row.product_code, row.new_price);
+      });
+
+      await Promise.all(promises);
+    } catch (error: any) {
+      console.log(error);
+
       throw new Error(error.sqlMessage || error.message);
     }
   };

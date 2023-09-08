@@ -15,4 +15,14 @@ export class ProductsController{
       res.status(error.statusCode || 400).send({message: error.message});
     }
   };
+
+  updatePrices = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { data } = req.body;
+      await this.productsBusiness.updatePrices(data);
+      res.status(204);
+    } catch (error: any) {
+      res.status(error.statusCode || 400).send({message: error.message});
+    }
+  };
 }

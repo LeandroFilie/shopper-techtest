@@ -18,3 +18,5 @@ const upload = multer({
 const productsController = new ProductsController(new ProductsBusiness(new ProductsData(), new PacksData()));
 
 productsRouter.post('/validate', upload.single('file'), productsController.validate);
+
+productsRouter.put('/updatePrices', productsController.updatePrices);

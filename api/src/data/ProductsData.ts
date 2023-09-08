@@ -24,4 +24,14 @@ export class ProductsData extends BaseDatabase {
       throw new Error(error.sqlMessage || error.message);
     }
   };
+
+  updateProductPrice = async (product_code: number, new_price: number): Promise<void> => {
+    try {
+      const trx = await this.connection.transaction();
+      await trx(this.TABLE_NAME).update({sales_price: new_price}).where({code: product_code});
+      await trx.commit();
+    } catch (error: any) {
+      throw new Error(error.sqlMessage || error.message);
+    }
+  };
 }
