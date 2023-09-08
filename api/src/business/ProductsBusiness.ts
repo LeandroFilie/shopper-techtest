@@ -1,6 +1,6 @@
 import { ProductsData } from '../data/ProductsData';
 import fs from 'fs';
-import { CSVFile } from '../types/csvFile';
+import { CSVFile, CSVFileResponse } from '../types/csvFile';
 import { PacksData } from '../data/PacksData';
 import { PacksWithItems } from '../types/packsWithItems';
 import { response } from 'express';
@@ -71,7 +71,7 @@ export class ProductsBusiness {
     return prices;
   };
 
-  private validatePrice = async (rows: CSVFile[]) => {
+  private validatePrice = async (rows: CSVFile[]): Promise<CSVFileResponse[]> => {
     const listOfPrices = await this.getPrices(rows);
 
     const rowsValidate = rows.map((row, index) => {
@@ -84,12 +84,12 @@ export class ProductsBusiness {
         row.message?.push('preço com alteração maior a 10% do preço atual');
       }
 
-      return row;
+      return {...row, sales_price: listOfPrices[index]?.sales_price};
     });
     return rowsValidate;
   };
 
-  private validateIfProductsExists = async (rows: CSVFile[]) => {
+  private validateIfProductsExists = async (rows: CSVFile[]): Promise<CSVFileResponse[]> => {
     const listOfProducts = await this.productsData.getAllProducts();
     const arrayOfProducts = listOfProducts.map((product) => product.code);
 
@@ -99,7 +99,7 @@ export class ProductsBusiness {
       if(!arrayOfProducts.includes(product_code)){
         row.message?.push('produto não cadastrado');
       }
-      return row;
+      return {...row, name: listOfProducts.find((product) => product.code === product_code)?.name};
     });
 
     return rowsValidate;

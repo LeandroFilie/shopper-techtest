@@ -14,10 +14,10 @@ export class ProductsData extends BaseDatabase {
     }
   };
 
-  getAllProducts = async (): Promise<Array<{code: number}>> => {
+  getAllProducts = async (): Promise<Array<{code: number, name: string}>> => {
     try {
       const trx = await this.connection.transaction();
-      const result = await trx(this.TABLE_NAME).select('code');
+      const result = await trx(this.TABLE_NAME).select('code', 'name');
       await trx.commit();
       return result;
     } catch (error: any) {
