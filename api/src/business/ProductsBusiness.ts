@@ -3,7 +3,6 @@ import fs from 'fs';
 import { CSVFile, CSVFileResponse } from '../types/csvFile';
 import { PacksData } from '../data/PacksData';
 import { PacksWithItems } from '../types/packsWithItems';
-import { response } from 'express';
 
 export class ProductsBusiness {
   constructor(private productsData: ProductsData, private packsData: PacksData) {}
@@ -14,19 +13,29 @@ export class ProductsBusiness {
       const valuesArray = linesOfFile.splice(1).map((line) => line.split(','));
 
       if(valuesArray.length === 0){
-        throw new Error('arquivo vazio');
+        throw new Error('Missing file');
       }
 
-      const values = valuesArray.map<CSVFile>((value) => (
-        {product_code: Number(value[0]?.trim()), new_price: Number(value[1]?.trim()), message: []}
-      ));
+      const values = valuesArray.map<CSVFile>((value) => ({
+        product_code: Number(value[0]?.trim()),
+        new_price: Number(value[1]?.trim()),
+        rules: {
+          missingInput: false,
+          priceIsNaN: false,
+          priceSmallerThanCost: false,
+          priceChangeGreaterThan10Percent: false,
+          notExistsProduct: false,
+          packComponentNotPresent: false,
+          packPriceNotEqualToSumOfComponents: false
+        }
+      }));
 
       let valuesValidate = values.map((value) => {
         if(!value.product_code || !value.new_price){
-          value.message?.push('produto ou preço não informados');
+          value.rules.missingInput = true;
         }
         if(isNaN(value.new_price)){
-          value.message?.push('preço inválido');
+          value.rules.priceIsNaN = true;
         }
         return value;
       });
@@ -41,15 +50,15 @@ export class ProductsBusiness {
     }
   };
 
-  updatePrices = async (data: CSVFile[]): Promise<void> => {
+  updatePrices = async (products: CSVFile[]): Promise<void> => {
     try {
-      if(data.length === 0){
-        throw new Error('arquivo vazio');
+      if(products.length === 0){
+        throw new Error('Missing file');
       }
 
-      const promises = data.map((row) => {
-        if(row.message && row.message.length > 0){
-          throw new Error('arquivo inválido');
+      const promises = products.map((row) => {
+        if(Object.values(row.rules).some((rule) => rule === true)){
+          throw new Error('Invalid File');
         }
 
         return this.productsData.updateProductPrice(row.product_code, row.new_price);
@@ -77,11 +86,11 @@ export class ProductsBusiness {
     const rowsValidate = rows.map((row, index) => {
       const {new_price} = row;
       if (new_price < Number(listOfPrices[index]?.cost_price)){
-        row.message?.push('preço menor que o custo');
+        row.rules.priceSmallerThanCost = true;
       }
 
       if(new_price > Number(listOfPrices[index]?.sales_price) * 1.10 || new_price < Number(listOfPrices[index]?.sales_price) * 0.90){
-        row.message?.push('preço com alteração maior a 10% do preço atual');
+        row.rules.priceChangeGreaterThan10Percent = true;
       }
 
       return {...row, sales_price: listOfPrices[index]?.sales_price};
@@ -90,37 +99,40 @@ export class ProductsBusiness {
   };
 
   private validateIfProductsExists = async (rows: CSVFile[]): Promise<CSVFileResponse[]> => {
-    const listOfProducts = await this.productsData.getAllProducts();
-    const arrayOfProducts = listOfProducts.map((product) => product.code);
+    const promises = rows.map((row) => {
+      return this.productsData.getProduct(row.product_code);
+    });
+    const products = await Promise.all(promises);
 
-
-    const rowsValidate = rows.map((row) => {
-      const {product_code} = row;
-      if(!arrayOfProducts.includes(product_code)){
-        row.message?.push('produto não cadastrado');
+    products.forEach((product, index) => {
+      if(!product){
+        rows[index].rules.notExistsProduct = true;
       }
-      return {...row, name: listOfProducts.find((product) => product.code === product_code)?.name};
     });
 
-    return rowsValidate;
+    rows = rows.map((row, index) => {
+      return {...row, name: products[index]?.name};
+    });
+
+    return rows;
   };
 
   private filterPacks = async (rows: CSVFile[]): Promise<PacksWithItems[] > => {
-    const listOfPacks = await this.packsData.getAllPacks();
-    const arrayOfProducts = rows.map((row) => row.product_code);
+    const promises = rows.map((row) => {
+      return this.packsData.getPack(row.product_code);
+    });
+    const listOfPacks = (await Promise.all(promises)).filter((pack) => pack !== undefined);
+    console.log(listOfPacks);
+
 
     const groupedByPackId = Object.values(
       listOfPacks.reduce((acc, currentItem) => {
         const { pack_id, ...rest } = currentItem;
-
-        if(arrayOfProducts.includes(pack_id)){
-          if (!acc[pack_id]) {
-            acc[pack_id] = { pack_id, items: [] };
-          }
-
-          acc[pack_id].items.push(rest);
+        if (!acc[pack_id]) {
+          acc[pack_id] = { pack_id, items: [] };
         }
 
+        acc[pack_id].items.push(rest);
         return acc;
       }, {} as Record<number, PacksWithItems>)
     ) as PacksWithItems[];
@@ -136,15 +148,11 @@ export class ProductsBusiness {
 
       pack.items.forEach((item) => {
         if(!rows.find((value) => value.product_code === item.product_id)){
-          rows[packIndex].message?.push(`componente com código ${item.product_id} do pack não está no arquivo`);
+          rows[packIndex].rules.packComponentNotPresent = true;
         } else {
           const itemIndex = rows.findIndex((value) => value.product_code === item.product_id);
-          if(rows[packIndex].message?.includes('preço do pack diferente da soma dos preços dos componentes')){
-            return;
-          }
-
           if(rows[packIndex].new_price !== Number((rows[itemIndex].new_price * item.qty).toFixed(2))){
-            rows[packIndex].message?.push('preço do pack diferente da soma dos preços dos componentes');
+            rows[packIndex].rules.packPriceNotEqualToSumOfComponents = true;
           }
         }
       });

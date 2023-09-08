@@ -1,7 +1,15 @@
 export interface CSVFile {
   product_code: number;
   new_price: number;
-  message?: string[];
+  rules: {
+    missingInput: boolean;
+    priceIsNaN: boolean;
+    priceSmallerThanCost: boolean;
+    priceChangeGreaterThan10Percent: boolean;
+    notExistsProduct: boolean;
+    packComponentNotPresent: boolean;
+    packPriceNotEqualToSumOfComponents: boolean;
+  };
 }
 
 export interface CSVFileResponse extends CSVFile {
