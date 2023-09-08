@@ -1,3 +1,5 @@
+import { Home } from './view/pages/Home';
+
 export function App() {
-  return <h1>Shopper</h1>;
+  return <Home />;
 }

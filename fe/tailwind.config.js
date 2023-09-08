@@ -5,7 +5,14 @@ export default {
     './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#1E2044',
+      },
+      fontFamily: {
+        roboto: ['Roboto', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 };
