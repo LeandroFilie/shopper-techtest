@@ -7,11 +7,9 @@
 
 Clone o projeto e acesse a pasta
 ```bash
-$ git clone https://github.com/LeandroFilie/.git
+$ git clone https://github.com/LeandroFilie/shopper-techtest.git
 
-$ cd 
-
-$ npm install
+$ cd shopper-techtest
 ```
 
 ### API
@@ -112,7 +110,7 @@ Você poderá acessar atráves do link [http://localhost:5173/](http://localhost
 - Docker
 
 
-## Documentação do Fron-End
+## Documentação do Front-End
 
 ### Stack utilizada
 - React
